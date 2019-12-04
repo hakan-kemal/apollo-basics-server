@@ -1,5 +1,6 @@
 // To build our graph API, we need to import the ApolloServer class from apollo-server
 const { ApolloServer } = require('apollo-server');
+const isEmail = require('isemail');
 // We also need to import our schema from src/schema.js.
 const typeDefs = require('./schema');
 // Second, we import our createStore function to set up our database, as well as our data sources:
@@ -14,6 +15,17 @@ const UserAPI = require('./datasources/user');
 const store = createStore();
 // Next, let's create a new instance of ApolloServer and pass our schema to the typeDefs property on the configuration object.
 const server = new ApolloServer({
+  context: async ({ request }) => {
+    // simple auth check on every request
+    const auth = (request.headers && request.headers.authorization) || '';
+    const email = Buffer.from(auth, 'base64').toString('ascii');
+    if (!isEmail.validate(email)) return { user: null };
+    // find a user by their email
+    const users = await store.users.findOrCreate({ where: { email } });
+    const user = (users && users[0]) || null;
+
+    return { user: { ...user.dataValues } };
+  },
   typeDefs,
   resolvers,
   // Finally, we add the dataSources function to our ApolloServer to connect LaunchAPI and UserAPI to our graph.
