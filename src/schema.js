@@ -4,10 +4,31 @@ const { gql } = require('apollo-server');
 const typeDefs = gql`
   # We'll start with the Query type, which is the entry point into our schema that describes what data we can fetch.
   type Query {
-    launches: [Launch]!
+    # launches: [Launch]!
+    launches( # replace the current launches query with this one.
+      """
+      The number of results to show. Must be >= 1. Default = 20
+      """
+      pageSize: Int
+      """
+      If you add a cursor here, it will only return results _after_ this cursor
+      """
+      after: String
+    ): LaunchConnection!
     launch(id: ID!): Launch
     # Queries for the current user
     me: User
+  }
+
+  """
+  Simple wrapper around our list of launches that contains a cursor to the
+  last item in the list. Pass this cursor to the launches query to fetch results
+  after these.
+  """
+  type LaunchConnection { # add this below the Query type as an additional type.
+    cursor: String!
+    hasMore: Boolean!
+    launches: [Launch]!
   }
 
   # First, we define a launches query to fetch all upcoming rocket launches.

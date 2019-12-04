@@ -4,6 +4,9 @@ const { ApolloServer } = require('apollo-server');
 const typeDefs = require('./schema');
 // Second, we import our createStore function to set up our database, as well as our data sources:
 const { createStore } = require('./utils');
+// First, let's connect our resolver map to Apollo Server. Right now, it's just an empty object,
+// but we should add it to our ApolloServer instance so we don't have to do it later.
+const resolvers = require('./resolvers');
 // Third, import the LaunchAPI and UserAPI datasource classes/functions
 const LaunchAPI = require('./datasources/launch');
 const UserAPI = require('./datasources/user');
@@ -12,6 +15,7 @@ const store = createStore();
 // Next, let's create a new instance of ApolloServer and pass our schema to the typeDefs property on the configuration object.
 const server = new ApolloServer({
   typeDefs,
+  resolvers,
   // Finally, we add the dataSources function to our ApolloServer to connect LaunchAPI and UserAPI to our graph.
   dataSources: () => ({
     launchAPI: new LaunchAPI(),
